@@ -1,0 +1,7 @@
+
+#Kernel files downloaded from amlogic website.
+
+wget   http://openlinux.amlogic.com/download/linux/ARM/build_system/arm_ref-build_system_2011-07-26-14.00-svn2028.tar.gz
+
+wget   http://openlinux.amlogic.com/download/linux/ARM/kernel/arm-src-kernel-m3-2012-04-23-15.19-git-ec9b327098.tar.bz2
+

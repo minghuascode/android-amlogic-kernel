@@ -1,0 +1,396 @@
+
+
+Document Download Link
+========================
+http://openlinux.amlogic.com/download/linux/doc/
+
+
+Linux
+System Build
+=============
+http://openlinux.amlogic.com/wiki/index.php/Arm/Build_System
+
+Source
+    Kernel buildroot source 2011-04-06 released, Support 6236M(sz/sh),7266M(sz/sh),
+            8226M(dvbc),8726M : 
+
+          arm-src-kernel-2011-02-21-11.30-git-9dababe0e2.tar.tgz
+
+    Bootloader 2011-05-10 released: 
+
+          arm-u-boot-2011.03.svn1828.zip
+
+    FS buildroot source 2011-04-06 released: 
+
+          arm-buildroot-2010.05-2011-04-06-10.45--svn2013.tgz
+
+    Build scripts: 
+
+          arm_ref-build_system_2011-07-26-14.00-svn2028.tar.gz
+
+Tools:
+    EABI for uboot arm-2010q1-188-arm-none-eabi-i686-pc-linux-gnu.tar.bz2
+
+    GNU for kernel arm-2010q1-202-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+
+Building
+    Extract build scripts. It creates a buld dir. 
+    Go to the build dir, edit the env.sh, run '. ./env.sh'.
+    Extract kernel and buildroot inside the build dir. 
+    
+    Kernel: 'cd build_kernel/7266m_6236m_build; make; make modules'
+    Rootfs: 'cd build_rootfs/7266m_8626m_demo; make'
+
+
+
+Android
+Building from source
+======================
+http://openlinux.amlogic.com/wiki/index.php/Arm/Android
+
+    Setting up Your Machine
+    Getting the Source Code
+        How to generate SSH public key 
+    Building the Code
+    Recovery Mode
+    Running Android from an SD Card
+    Running Android from NAND Flash 
+
+    Make a custom update package
+    Third-Party Libraries and Open Source License Agreements 
+
+
+Android
+2.Getting the Source Code
+===========================
+http://openlinux.amlogic.com/wiki/index.php//2.Getting_the_Source_Code
+
+Before you begin
+
+You will need to be granted access to the git server. Generate an SSH key 
+following the instructions at How_to_generate_SSH_public_key and send the 
+public key, id_rsa.pub, to your representative.
+
+To download the code, you will need to install Repo.
+
+Repo is a tool that makes it easier to work with Git in the context of Android. 
+For more information about Repo, see Using Repo and Git.
+
+To download, install, and configure Repo, follow the steps below:
+
+1. Create a bin directory in your Linux home and add it to your executable PATH
+
+ $ cd ~
+ $ mkdir bin
+ $ export PATH=~/bin:$PATH
+
+2. Download repo script and make sure it's executable
+
+ $ curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
+ $ chmod a+x ~/bin/repo
+
+3. Create an empty directory to hold the working files
+
+ $ mkdir ~/mydroid
+ $ cd ~/mydroid
+
+4. Run "repo init" to initialize the repository to point to Amlogic Android 
+source code repository.
+
+ $ repo init -u ssh://git@openlinux.amlogic.com/ics/platform/manifest.git -b ics-amlogic --repo-url=git://codeaurora.org/tools/repo.git
+
+The "-b" option allows you to specify the branch of the code that's appropriate 
+for the target platform you have.
+
+You will be prompted to enter your name and email address during the initialization.
+
+A successful initialization will end up with a message such as
+
+ repo initialized in mydroid
+
+5. Now you are ready to check out the source code
+
+ $ repo sync
+
+For more about "repo sync" and other Repo commands, see Using Repo and Git.
+Troubleshooting
+
+git@openlinux.amlogic.com's password:
+
+If you are asked for a password, then your SSH public key is not recognized. 
+Make sure to generate an SSH key. See note at the top of this page. 
+
+
+Android
+3.Building the Code
+======================
+http://openlinux.amlogic.com/wiki/index.php//3.Building_the_Code
+
+Contents
+    1 1. Get Uboot
+    2 2. Build Android root filesystem
+    3 3. Build Kernel
+    4 4. Build update package
+
+1. Get Uboot
+
+Some platforms will require the bootloader, uboot, to be loaded from an SD card. 
+Download the latest uboot binary from [1]
+
+2. Build Android root filesystem
+
+    Switch to the project path: 
+
+   $ cd ~/mydroid
+
+    Setup build environment (make sure to include leading 'dot space'): 
+
+   $ . build/envsetup.sh
+
+    Choose the appropriate device target. Target name will match the platform 
+name (c01ref, c09ref, ...): 
+
+   $ lunch f16ref-user
+
+If you want to see the full lunch menu , do
+
+   $ lunch
+
+    Begin to compile rootfs: 
+
+   $ make -j8 
+
+The '-j' option allows you to do parallel make. '-j8' will spawn 8 jobs in parallel.
+
+If you want to see the detailed compilation command used, do
+
+   $ make showcommands -j8
+
+
+3. Build Kernel
+
+    Download the ARM EABI toolchain: 
+
+  arm-2010q1-202-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+
+    Setup build environment: 
+
+  $ tar xf arm-2010q1-202-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+
+    Add arm-2010q1/bin to $PATH 
+
+  $ export PATH=$PATH:~/(current file path)/arm-2010q1/bin
+
+
+    Switch to the kenel path: 
+
+  $ cd ~/mydroid/kernel
+  
+
+    Generate a .config configuration file for building kernel: 
+
+  $ make meson_reff16_defconfig
+
+Use the appropriate defconfig for your target platform. In this case, f16. To see 
+a list of possible configs:
+
+  $ ls arch/arm/configs/
+  $ make help
+
+    Start to build: 
+
+  $ make -j9
+
+    Make sure the modules ump.ko, mali.ko are copied to the kernel initramfs. 
+
+  $ cp build/drivers/amlogic/ump/ump.ko ~/mydroid/out/target/product/f16ref/root/boot/
+  $ cp build/drivers/amlogic/mali/mali.ko ~/mydroid/out/target/product/f16ref/root/boot/
+
+    Start to make the kernel image: 
+
+  $ make uImage -j9
+  
+
+    Copy the new image file to target output: 
+
+  $ cp arch/arm/boot/uImage ~/mydroid/out/target/product/f16ref/
+
+
+    Make Recovery System 
+
+To generate the file .config for building recovery system:
+
+  $ make meson_refc01_recovery_defconfig
+
+If a recovery_defconfig is not available, change CONFIG_INITRAMFS_SOURCE to recovery/root 
+in Android output.
+
+    Start to make the recovery kernel image: 
+
+  $ make uImage -j9
+
+    Copy the new recovery image file to target system: 
+
+    $ cp arch/arm/boot/uImage ~/mydroid/out/target/product/m1ref/uImage_recovery
+
+
+4. Build update package
+
+To run Android from internal storage, you must create an update package.
+
+    Switch to the project path: 
+
+   $ cd ~/mydroid
+
+    Setup build environment: 
+
+   $ . build/envsetup.sh   
+
+    Choose the appropriate device target: 
+
+   $ lunch f16ref-user
+
+    Build the update package 
+
+   $ make otapackage
+
+The update package m1ref-ota-eng.android.zip will be in ~/mydroid/out/target/product/f16ref.
+
+Path and filenames may vary depending on platform type. 
+
+
+Android
+4.Recovery Mode
+=================
+http://openlinux.amlogic.com/wiki/index.php//4.Recovery_Mode
+
+To run Android from internal NAND flash, you must first boot the 
+recovery kernel, then update by selecting the packaged update .zip.
+
+The recovery kernel should be located at 
+~/mydroid/out/target/product/xx/uImage_recovery and the update package at 
+~/mydroid/out/target/product/xx/xx-ota-eng.name.zip. Both are created 
+in the previous steps.
+
+
+Enter Recovery
+
+Connect your PC to the serial port and open a console. Power on your 
+platform and press CTRL-C until uboot is stopped at the prompt:
+
+Hit any key to stop autoboot:  0
+refc01#
+
+At the uboot prompt, issue the following command to load and boot 
+the recovery image over Ethernet:
+
+# set bootargs console=ttyS0 mac=${ethaddr} mem=512M a9_clk=800M
+
+For example, your TFTP Server is 10.8.10.8
+
+# set serverip 10.8.10.8
+# tftp uImage
+# bootm
+
+To load the recovery image from the FAT partition of an SD card:
+
+# mmcinfo
+# fatload mmc 0 82000000 uImage_recovery
+# bootm
+
+The system will then boot to the Android recovery system. Choose to update 
+by selecting the previously built update .zip copied to your FAT 
+partitioned SD card.
+
+Afterwards, the kernel and Android system will be installed onto your 
+platform's internal storage. 
+
+
+Android
+5.Running Android from an SD Card
+=====================================
+
+Instead of running Android from internal storage, you can run Android from SD card.
+
+You will need to prepare the SD card as follow:
+
+ $ sudo fdisk /dev/<your sdcard,for example sdd>
+ Command (m for help): p
+ 
+ Disk /dev/sdd: 1977 MB, 1977614336 bytes
+ 64 heads, 63 sectors/track, 957 cylinders
+ Units = cylinders of 4032 * 512 = 2064384 bytes
+ Disk identifier: 0x00000000
+ 
+ Device Boot      Start         End      Blocks   Id  System
+ /dev/sdd1            1          30       60448+   b  W95 FAT32
+ /dev/sdd2           31         957     1868832   83  Linux
+
+Format the partitions using the following commands:
+
+ $ sudo mkfs.msdos /dev/sdd1
+ $ sudo mkfs.ext3 /dev/sdd2
+
+Download a kernel the Android release from here and placed it in the FAT32 partition:
+
+ $ sudo mkdir -p /mnt/fat32
+ $ sudo mount /dev/sdd1 /mnt/fat32
+ $ sudo cp uImage.android /mnt/fat32
+
+Unpack the Android rootfs tarball prepared earlier onto the EXT2 partition:
+
+ $ sudo mkdir -p /mnt/ext3
+ $ sudo mount /dev/sdd2 /mnt/ext3
+ $ sudo tar jxfv out/target/product/m1ref/rootfs.tar.bz2 --numeric-owner -C /mnt/ext3
+
+And the final steps:
+
+ $ sync
+ $ sudo umount /mnt/fat32
+ $ sudo umount /mnt/ext3
+
+Now you can take the SD card and insert into the M1 reference board, at the uboot 
+command line prompt, issue the following command:
+
+ # setenv bootcmd 'mmc init;mmcinfo;fatload mmc 0:1 82000000 uImage.android;bootm 82000000;'
+ # setenv bootargs 'console=ttyS0,115200n8 root=/dev/cardblksd2 rw rootfstype=ext3 init=/init mac=${ethaddr} rootwait'
+ # saveenv
+ # boot
+
+
+
+Android
+6.Running Android from NAND Flash
+==================================
+http://openlinux.amlogic.com/wiki/index.php//6.Running_Android_from_NAND_Flash
+
+After following 4.Recovery_Mode, you will have a kernel and Android system 
+installed on internal NAND flash.
+
+In most cases, the default uboot environment will boot to the kernel stored 
+on NAND, but if not:
+
+    Find the NAND offset where the kernel was installed by looking at the 
+    partition table in the BSP of your platform. For example: 
+
+    ~/mydroid/kernel/arch/arm/mach-meson/board-8726m-refc01.c
+
+    MTD partitions on Nand Flash 
+
+Offset 	Size 	Name 	Description
+0 	4MB 	uboot 	MUST >= 4MB
+0x400000 	2MB 	ubootenv 	At least 0x2000
+0x600000 	2MB 	recovery 	At least 2MB
+0x800000 	4MB 	boot 	Android Kernel
+0xC00000 	116MB 	system 	Android rootfs
+0x8000000 	16MB 	cache 	For update
+0x9000000 	N/A 	userdata 	User data partition
+
+    Load and boot the kernel 
+
+ At the uboot command line prompt, issue the following command:
+ # set bootargs console=ttyS0 mac=${ethaddr} mem=512M a9_clk=800M
+ # set bootcmd 'nand read ${loadaddr} 800000 400000;bootm'
+ # save
+ # run bootcmd
+

@@ -1,0 +1,145 @@
+
+
+Amlogic 8726M Building:
+=========================
+openlinux.amlogic.com/wiki/index.php/Arm/Platform_Info/Information_for_8726M/Build_system_for_8726M_Howto
+
+Arm/Platform Info/Information for 8726M/Build system for 8726M Howto
+
+Install the cross toolchain
+
+    1. Get the pre-build package;
+        arm-2010q1-202-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2 
+    2. Uncompress the package; 
+
+   cd /opt
+   tar jxvf ${the_path_of_package}/arm-2010q1-202-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+   export PATH=/opt/arm-2010q1-202-arm-none-linux-gnueabi-i686-pc-linux-gnu\arm-2010q1\bin:$PATH
+
+
+How to identify the board version
+
+    1. AML_8726-M_DEV_BOARD 2010-10-11_v1.0( meson_refc01_defconfig ,2K page size nand).
+    2. Meson board _AML_8726-M 2010-11-18_v1.1(meson_refc01_defconfig ,4K page size nand). 
+
+
+Build u-boot for 8726M
+
+    1. Get the source code;
+        arm-u-boot-2011.01.svn1541.zip 
+    2. Uncompress the source code; 
+
+   unzip arm-u-boot-2011.01.svn1541.zip -d arm-u-boot-2011.01.svn1541
+
+    3. Make sure the source code is cleaned; 
+
+   cd arm-u-boot-2011.01.svn1541
+   make distclean
+
+    4. Configurate the u-boot for 8726M; 
+
+   make m1_8726m_ref_config
+
+    5. Build the u-boot; 
+
+   make
+
+    6. Then you can find the 'u-boot-aml.bin' for 8726 from 'build/u-boot-aml.bin'; 
+
+
+Build kernel for 8726M
+
+    1. Get the source code;
+        arm-src-kernel-2011-01-30-11.30-git-0d44858c98.tar.tgz 
+    2. Uncompress the source code; 
+
+   tar zxvf arm-src-kernel-2011-01-30-11.30-git-0d44858c98.tar.tgz
+
+    3. Make sure the source code is cleaned; 
+
+   cd arm-src-kernel-2011-01-30-11.30-git-0d44858c98
+   make distclean
+
+    4. Configurate the kernel for 8726M; 
+
+   make meson_amlref_defconfig
+   A.AML_8726-M_DEV_BOARD 2010-10-11_v1.0: 
+   Execute "make menuconfig" and select "System Type"->"Meson plantform type"->"Support M1 8726(for arm board) platform(machid=2956)"->
+   "Select Nand Flash Type"->"2K Page Size of Nand Flash" on Linux Kernel Configuration  
+   B.Meson board _AML_8726-M 2010-11-18_v1.1: 
+   Execute "make menuconfig" and select "System Type"->"Meson plantform type"->"Support M1 8726(for arm board) platform(machid=2956)"->
+   "Select Nand Flash Type"->"4K Page Size of Nand Flash" on Linux Kernel Configuration
+ 
+
+    5. Build the kernel; 
+
+   make
+   make uImage
+
+    6. Then you can find the 'uImage' for 8726 from 'arch/arm/boot';
+    7. You can find the Mali driver from 'drivers/amlogic/mali/mali.ko'. 
+
+
+Build android kernel for 8726M
+
+    1. Get the source code;
+        arm-src-android_kernel-2011-04-06-12.32-git-f07771e0fb.tar.gz 
+    2. Uncompress the source code; 
+
+   tar zxvf arm-src-android_kernel-2011-04-06-12.32-git-f07771e0fb.tar.tgz
+
+    3. Make sure the source code is cleaned; 
+
+   cd arm-src-android_kernel-2011-04-06-12.32-git-f07771e0fb
+   make distclean
+
+    4. Configurate the kernel for 8726M; 
+
+   make meson_refc01_defconfig
+   A.AML_8726-M_DEV_BOARD 2010-10-11_v1.0: 
+   Execute "make menuconfig" and select "System Type"->"Meson plantform type"->"Support M1 8726(for arm board) platform(machid=2956)"->
+   "Select Nand Flash Type"->"2K Page Size of Nand Flash" on Linux Kernel Configuration  
+   B.Meson board _AML_8726-M 2010-11-18_v1.1: 
+   Execute "make menuconfig" and select "System Type"->"Meson plantform type"->"Support M1 8726(for arm board) platform(machid=2956)"->
+   "Select Nand Flash Type"->"4K Page Size of Nand Flash" on Linux Kernel Configuration
+ 
+
+    5. Build the kernel; 
+
+   make
+   make uImage
+
+    6. Then you can find the 'uImage' for 8726 from 'arch/arm/boot';
+    7. You can find the Mali driver from 'drivers/amlogic/mali/mali.ko'. 
+
+
+Build Rootfs for 8726M
+
+    1. Download build system scripts:
+        arm_ref-build_system_2010-10-12-svn1960.tgz 
+    2. Download buildroot source code
+        arm-buildroot-2010.05-2010-10-12-10.00--svn1957.tgz 
+    3. Uncompress the packages 
+
+   tar zxvf arm_ref-build_system_2010-10-12-svn1960.gz
+   cd arm_ref
+   tar zxvf ../arm-buildroot-2010.05-2010-10-12-10.00--svn1957.gz
+
+    4. Setup build enviroment 
+
+   . ./env.sh
+
+    5. Build rootfs(7666m, 8626m and 8726M can use the same rootfs) 
+
+   cd build_rootfs/7266m_8626m_demo/
+   make
+
+    6. Then you can find the basic rootfs from 'build/target';
+    7. Creat YAFFS rootfs 
+
+    The tools can be found from "device/amlogic/m1ref/". 
+    A.AML_8726-M_DEV_BOARD 2010-10-11_v1.0:
+    mkyaffsimage2K.dat target rootfs.img
+    B.Meson board _AML_8726-M 2010-11-18_v1.1: 
+    mkyaffsimage4K.dat target rootfs.img
+
